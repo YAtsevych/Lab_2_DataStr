@@ -1,0 +1,181 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <string>
+#include <math.h>
+using namespace std;
+
+template <typename T>
+struct Data1 {
+	T x;
+	T y;
+	Data1* nextData;
+	Data1(T x1, T y1) : x(x1), y(y1), nextData(nullptr) {};
+}; //Structure for the first list
+
+template <typename T>
+struct Data2 {
+	T num;
+	Data2* nextNum;
+	Data2(T num1) : num(num1), nextNum(nullptr) {};
+}; //Structure for the second list
+
+
+//Object class that creates a list, retrieves information from a file and displays it to a file and console
+template <typename T>
+class LinkList1 {
+private:
+	Data1<T>* head;
+public:
+	LinkList1() : head(nullptr) {};
+	
+	void addNew(T x, T y)
+	{
+		Data1<T>* newData = new Data1<T>(x, y);
+		newData->nextData = head;
+		head = newData;
+	}
+	double readfile(ifstream& file, double& maxDist) {
+		maxDist = 0;
+		double x, y;
+		while (file >> x >> y)
+		{
+			double dist = sqrt(pow(x, 2) + pow(y, 2));
+			if (dist >= 21)
+			{
+				this->addNew(x, y);
+				if (maxDist < dist)
+				{
+					maxDist = dist;
+				}
+			}
+		}
+
+		return maxDist;
+	}
+	void printListCons() {
+		Data1<T>* current = head;
+		cout << endl;
+		while (current != nullptr) {
+			std::cout << "(" << current->x << ", " << current->y << ") \n";
+			current = current->nextData;
+		}
+		std::cout << std::endl;
+	}
+	void printListFile(ofstream &file) {
+		Data1<T>* current = head;
+		
+		while (current != nullptr) {
+			double dist = sqrt(pow(current->x, 2) + pow(current->y, 2));
+			file << "(" << current->x << " , " << current->y << ") - dist("<< dist << " )\n";
+			current = current->nextData;
+		}
+		
+	}
+};
+
+
+//Object class that creates a list of the second job , retrieves the information from the file and prints it into a file and console
+template <typename T>
+class LinkList2 {
+private:
+	Data2<T>* head;
+public:
+	LinkList2() : head(nullptr) {};
+	void addNew(T num)
+	{
+		Data2<T>* newNum = new Data2<T>(num);
+		newNum->nextNum = head;
+		head = newNum;
+		if (num >= 10)
+		{
+			T doubleData = num * 2;
+			Data2<T>* newNum = new Data2<T>(doubleData);
+			newNum->nextNum = head;
+			head = newNum;
+		}
+	}
+	double readfile(ifstream& file, double& minNum) {
+		
+		double num;
+		file >> minNum;
+		this->addNew(minNum);
+		while (file >> num)
+		{
+			if (minNum > num)
+			{
+				minNum = num;
+			}
+			this->addNew(num);
+		}	
+		return minNum;
+	}
+
+	void reverslist() {
+		Data2<T>* prev = nullptr;
+		Data2<T>* current = head;
+		Data2<T>* nextNum = nullptr;
+		while (current != nullptr) {
+			nextNum = current->nextNum;   // Save the next node
+			current->nextNum = prev;      // Reverse the link
+			prev = current;               // Move one step forward in the list
+			current = nextNum;            // Move one step forward in the list
+		}
+		head = prev;
+
+	}
+	void printListCons() {
+		Data2<T>* current = head;
+		cout << endl;
+		while (current != nullptr) {
+			std::cout << current -> num <<" \n";
+			current = current->nextNum;
+		}
+		std::cout << std::endl;
+	}
+
+	void printListFile(ofstream& file) {
+		this->reverslist();
+		Data2<T>* current = head;
+		while (current != nullptr) {
+			file << current->num << " \n";
+			current = current->nextNum;
+		}
+	};
+};
+
+
+
+int main() {
+string file1_link = "E:\\Studying\\C++\\lab2_Dst\\lab2_Dst\\list1_in.txt";
+	string file2_link = "E:\\Studying\\C++\\lab2_Dst\\lab2_Dst\\list2_in.txt";
+	ifstream file1 , file2;
+	LinkList1<double> list1_in;
+	LinkList2<double> list2_in;
+
+	double maxDist=0, minNum=0;
+	file1.open(file1_link);
+	file2.open(file2_link);
+
+	if (file1.is_open()&&file2.is_open()) {
+		cout << "File opened successfully";
+
+	}
+	list1_in.readfile(file1, maxDist);
+	list2_in.readfile(file2, minNum);
+
+	cout <<endl<<"MinNum: "<< minNum << endl;
+	cout <<"MaxDist: " << maxDist << endl;
+	cout << "\t Arithmetic mean: " << (maxDist + minNum) / 2 << endl;
+
+	file1.close();
+	file2.close();
+
+	ofstream file1_out, file2_out;
+	file1_out.open("list1_out", ios::out);
+	file2_out.open("list2_out", ios::out);
+	list1_in.printListFile(file1_out);
+	list2_in.printListFile(file2_out);
+	file1_out.close();
+	file2_out.close();
+}
